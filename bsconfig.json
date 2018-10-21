@@ -1,0 +1,20 @@
+{
+  "name": "reason-spotify-mood",
+  "reason": { "react-jsx": 2 },
+  "refmt": 3,
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    }
+  ],
+  "package-specs": {
+    "module": "commonjs",
+    "in-source": true
+  },
+  "suffix": ".bs.js",
+  "warnings": {
+    "number": "+R"
+  },
+  "bs-dependencies": ["reason-react"]
+}
