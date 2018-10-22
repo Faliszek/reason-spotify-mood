@@ -16,5 +16,5 @@
   "warnings": {
     "number": "+R"
   },
-  "bs-dependencies": ["reason-react"]
+  "bs-dependencies": ["reason-react", "bs-css"]
 }

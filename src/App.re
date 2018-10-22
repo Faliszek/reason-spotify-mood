@@ -1,9 +1,8 @@
 let component = ReasonReact.statelessComponent("App");
 
-let make = (~message, _children) => {
+let make = _children => {
   ...component,
-  render: _self =>
-    <div> <div> <h2> {ReasonReact.string(message)} </h2> </div> </div>,
+  render: _self => <div> <Nav /> <Welcome /> </div>,
 };
 
 /* Wrapping Reason component for JS world. Required only for JS import */
@@ -11,7 +10,4 @@ let make = (~message, _children) => {
 [@bs.deriving abstract]
 type jsProps = {message: string};
 
-let default =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(~message=jsProps->messageGet, [||])
-  );
+let default = ReasonReact.wrapReasonForJs(~component, _props => make([||]));

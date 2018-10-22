@@ -1,17 +1,8 @@
 let component = ReasonReact.statelessComponent("Nav");
 
-let make = (~message, _children) => {
+let make = _children => {
   ...component,
-  render: _self =>
-    <div> <div> <h2> {ReasonReact.string(message)} </h2> </div> </div>,
+  render: _self => <nav> {ReasonReact.string("Nav")} </nav>,
 };
 
 /* Wrapping Reason component for JS world. Required only for JS import */
-
-[@bs.deriving abstract]
-type jsProps = {message: string};
-
-let default =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(~message=jsProps->messageGet, [||])
-  );

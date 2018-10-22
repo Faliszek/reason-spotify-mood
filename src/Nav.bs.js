@@ -6,7 +6,7 @@ var ReasonReact = require("reason-react/src/ReasonReact.js");
 
 var component = ReasonReact.statelessComponent("Nav");
 
-function make(message, _) {
+function make() {
   return /* record */[
           /* debugName */component[/* debugName */0],
           /* reactClassInternal */component[/* reactClassInternal */1],
@@ -18,7 +18,7 @@ function make(message, _) {
           /* willUpdate */component[/* willUpdate */7],
           /* shouldUpdate */component[/* shouldUpdate */8],
           /* render */(function () {
-              return React.createElement("div", undefined, React.createElement("div", undefined, React.createElement("h2", undefined, message)));
+              return React.createElement("nav", undefined, "Nav");
             }),
           /* initialState */component[/* initialState */10],
           /* retainedProps */component[/* retainedProps */11],
@@ -27,13 +27,6 @@ function make(message, _) {
         ];
 }
 
-var $$default = ReasonReact.wrapReasonForJs(component, (function (jsProps) {
-        return make(jsProps.message, /* array */[]);
-      }));
-
 exports.component = component;
 exports.make = make;
-exports.$$default = $$default;
-exports.default = $$default;
-exports.__esModule = true;
 /* component Not a pure module */
