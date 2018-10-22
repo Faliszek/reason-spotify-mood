@@ -26,5 +26,16 @@ module Styles = {
 let make = _children => {
   ...component,
   render: _self =>
-    <div> <IconBrand iconType="spotify" /> <Button text="Start" /> </div>,
+    <div>
+      <IconBrand iconType=Spotify />
+      <Title> {ReasonReact.string("Witaj w Spotify Mood")} </Title>
+      <Text>
+        {
+          ReasonReact.string(
+            "Aplikacja ta pozwoli ci na słuchanie twoich ulubionych utworów w zależnosci od twojego nastroju!"
+          )
+        }
+      </Text>
+      <Button text="Start" />
+    </div>,
 };

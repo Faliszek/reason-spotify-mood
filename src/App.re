@@ -2,7 +2,7 @@ let component = ReasonReact.statelessComponent("App");
 
 let make = _children => {
   ...component,
-  render: _self => <div> <Nav /> <Welcome /> </div>,
+  render: _self => <div> <Welcome /> </div>,
 };
 
 /* Wrapping Reason component for JS world. Required only for JS import */

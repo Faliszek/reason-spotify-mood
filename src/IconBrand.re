@@ -1,6 +1,14 @@
 let component = ReasonReact.statelessComponent("Icon");
 
-let make = (~iconType, _children) => {
+type iconType =
+  | Spotify;
+
+let typeOfIcon = (t: iconType) =>
+  switch (t) {
+  | Spotify => "fab fa-spotify"
+  };
+
+let make = (~iconType: iconType, _children) => {
   ...component,
-  render: _self => <i className={j|fab fa-$iconType|j} />,
+  render: _self => <div> <i className={typeOfIcon(iconType)} /> </div>,
 };
