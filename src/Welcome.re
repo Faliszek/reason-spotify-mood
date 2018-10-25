@@ -18,19 +18,12 @@ module Styles = {
 
   let wrap = style([maxWidth(px(320)), textAlign(center)]);
 
-  let title = style([marginTop(rem(1.0)), marginBottom(rem(2.5))]);
-  let text = style([marginTop(rem(1.0)), marginBottom(rem(1.5))]);
-  let actionButton = disabled =>
-    style([
-      background(disabled ? darkgray : white),
-      color(black),
-      border(px(1), solid, black),
-      borderRadius(px(3)),
-    ]);
+  let title = style([marginTop(rem(1.5)), marginBottom(rem(2.5))]);
+  let text = style([marginTop(rem(2.0)), marginBottom(rem(2.5))]);
 
   let icon =
     style([
-      marginTop(rem(1.0)),
+      marginTop(rem(2.0)),
       marginBottom(rem(1.0)),
       marginLeft(auto),
       marginRight(auto),
@@ -53,7 +46,14 @@ let make = _children => {
             )
           }
         </Text>
-        <Button text="Start" />
+        <Text className=Styles.text>
+          {
+            ReasonReact.string(
+              {j|Po kliknięciu start zostaniesz przeniesiony do autoryzacji z twoim kontem spotify|j},
+            )
+          }
+        </Text>
+        <Button buttonType=Primary text="Start" />
       </div>
     </div>,
 };
