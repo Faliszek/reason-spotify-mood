@@ -15,6 +15,8 @@ S /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/re-classn
 B /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/re-classnames/lib/ocaml
 S src
 B lib/bs/src
+S src/react
+B lib/bs/src/react
 S src/views
 B lib/bs/src/views
 S src/components
