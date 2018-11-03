@@ -30,8 +30,11 @@ module Styles = {
     ]);
 };
 
+let redirectToLoginPage = () => Api.redirect(Api.url ++ "/login");
+
 let make = _children => {
   ...component,
+  didMount: _self => [%bs.raw {| console.log(process.env) |}],
   render: _self =>
     <div className=Styles.view>
       <div className=Styles.wrap>
@@ -53,7 +56,11 @@ let make = _children => {
             )
           }
         </Text>
-        <Button buttonType=Primary text="Start" />
+        <Button
+          buttonType=Primary
+          text="Start"
+          onClick={_e => redirectToLoginPage()}
+        />
       </div>
     </div>,
 };

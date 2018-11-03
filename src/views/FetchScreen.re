@@ -1,4 +1,4 @@
-let component = ReasonReact.statelessComponent("Icon");
+let component = ReasonReact.statelessComponent("FetchScreen");
 
 let make = _children => {
   ...component,

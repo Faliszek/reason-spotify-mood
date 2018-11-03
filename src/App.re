@@ -1,6 +1,6 @@
 type route =
   | Welcome
-  | LoadScreen;
+  | FetchScreen;
 
 type state = {route};
 
@@ -14,7 +14,7 @@ let reducer = (action, _state) =>
 
 let mapUrlToRoute = (url: ReasonReact.Router.url) =>
   switch (url.path) {
-  | ["fetching"] => LoadScreen
+  | ["fetching"] => FetchScreen
   | _ => Welcome
   };
 
@@ -40,7 +40,7 @@ let make = _children => {
   render: self =>
     switch (self.state.route) {
     | Welcome => <Welcome />
-    | LoadScreen => <LoadScreen />
+    | FetchScreen => <FetchScreen />
     },
 };
 

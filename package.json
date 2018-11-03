@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "bs-css": "^7.2.0",
+    "bs-fetch": "^0.3.1",
     "re-classnames": "^3.0.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
@@ -25,6 +26,9 @@
   "eslintConfig": {
     "extends": "react-app"
   },
+  "eslintIgnore": [
+    "*.bs.js"
+  ],
   "browserslist": [
     ">0.2%",
     "not dead",

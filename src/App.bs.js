@@ -3,8 +3,8 @@
 
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
-var Welcome = require("./Welcome.bs.js");
-var LoadScreen = require("./LoadScreen.bs.js");
+var Welcome = require("./views/Welcome.bs.js");
+var FetchScreen = require("./views/FetchScreen.bs.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
 
 function reducer(action, _) {
@@ -14,7 +14,7 @@ function reducer(action, _) {
 function mapUrlToRoute(url) {
   var match = url[/* path */0];
   if (match && match[0] === "fetching" && !match[1]) {
-    return /* LoadScreen */1;
+    return /* FetchScreen */1;
   } else {
     return /* Welcome */0;
   }
@@ -44,7 +44,7 @@ function make() {
           /* render */(function (self) {
               var match = self[/* state */1][/* route */0];
               if (match) {
-                return ReasonReact.element(undefined, undefined, LoadScreen.make(/* array */[]));
+                return ReasonReact.element(undefined, undefined, FetchScreen.make(/* array */[]));
               } else {
                 return ReasonReact.element(undefined, undefined, Welcome.make(/* array */[]));
               }

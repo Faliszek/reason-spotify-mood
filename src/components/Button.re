@@ -33,10 +33,11 @@ module Styles = {
     };
 };
 
-let make = (~text, ~buttonType: buttonType, _children) => {
+let make = (~text, ~buttonType, ~onClick, _children) => {
   ...component,
   render: _self =>
     <button
+      onClick
       className={
         Cn.make([
           Styles.buttonColors(buttonType),
