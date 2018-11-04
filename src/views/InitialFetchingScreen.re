@@ -1,6 +1,6 @@
 let component = ReasonReact.statelessComponent("InitialScreen");
 let make = (~onStartFetching, _children) => {
-  let click = _e => onStartFetching();
+  let onClick = _e => onStartFetching();
   {
     ...component,
 
@@ -16,11 +16,7 @@ let make = (~onStartFetching, _children) => {
             )
           }
         </Text>
-        <Button
-          buttonType=Primary
-          text="Rozpocznij pobieranie"
-          onClick=click
-        />
+        <Button buttonType=Primary text="Rozpocznij pobieranie" onClick />
       </div>,
   };
 };

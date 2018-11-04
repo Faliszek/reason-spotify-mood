@@ -31,6 +31,7 @@ let make = _children => {
   ...component,
   reducer,
   initialState,
+  didMount: _self => Api.getUrlParams(),
   render: self =>
     <div className=Styled.view>
       <div className=Styled.wrap>
