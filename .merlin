@@ -13,6 +13,8 @@ S /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/bs-fetch/
 B /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/bs-fetch/lib/ocaml
 S /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/re-classnames/lib/ocaml
 B /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/re-classnames/lib/ocaml
+S /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/@glennsl/bs-json/lib/ocaml
+B /Users/pawelfalisz/Documents/Reason/reason-spotify-mood/node_modules/@glennsl/bs-json/lib/ocaml
 S src
 B lib/bs/src
 S src/react

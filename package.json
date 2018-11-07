@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@glennsl/bs-json": "^3.0.0",
     "@material-ui/core": "^3.3.2",
     "bs-css": "^7.2.0",
     "bs-fetch": "^0.3.1",

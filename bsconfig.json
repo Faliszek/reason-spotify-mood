@@ -16,5 +16,11 @@
   "warnings": {
     "number": "+R"
   },
-  "bs-dependencies": ["reason-react", "bs-css", "bs-fetch", "re-classnames"]
+  "bs-dependencies": [
+    "reason-react",
+    "bs-css",
+    "bs-fetch",
+    "re-classnames",
+    "@glennsl/bs-json"
+  ]
 }
