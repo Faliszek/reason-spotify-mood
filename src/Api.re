@@ -15,6 +15,7 @@ let getHeaders = () =>
   Fetch.HeadersInit.make({
     "Content-Type": "application/json",
     "Accept": "application/json",
+    "Authorization": "Bearer " ++ LocalStorage.get("access_token"),
   });
 
 let parseUrlParams = urlString => {
@@ -40,9 +41,7 @@ let parseUrlParams = urlString => {
           dict;
         },
       );
-
-  Js.log(dict);
-  ();
+  dict;
 };
 let getUrlParams = () => parseUrlParams(hash);
 
