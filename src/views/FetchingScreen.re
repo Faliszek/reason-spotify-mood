@@ -5,39 +5,23 @@ type track = {
   name: string,
 };
 
-type state = {
-  percent: int,
-  tracks: array(track),
-};
-type percent = int;
-
 type action =
   | SetTracks(array(track))
   | SetPercent(int)
+  | SetTotal(int)
+  | SetOffset(int)
   | Noop;
 
-let reducer = (action, state) =>
-  switch (action) {
-  | SetPercent(percent) => ReasonReact.Update({...state, percent})
-
-  | SetTracks(tracks) => ReasonReact.Update({...state, tracks})
-
-  | Noop => ReasonReact.NoUpdate
-  };
-
-let initialState = () => {percent: 0, tracks: [||]};
-
-let startOffset = "1";
-let limit = "50";
+let startOffset = 1;
+let limit = 50;
 
 let saveAccessData = () => {
   let params = Api.getUrlParams();
   Js.log(params);
   LocalStorage.save(params);
-  ();
 };
 
-module Track = {
+module Api = {
   open Json.Decode;
 
   let track = json => {
@@ -45,28 +29,59 @@ module Track = {
     name: json |> field("name", string),
   };
 
-  let payloadDecoder = json => {
-    tracks: json |> field("tracks", array(track)),
-    percent: json |> field("percent", int),
+  type payload = {
+    total: int,
+    percent: int,
+    tracks: array(track),
   };
 
-  payloadDecoder;
-};
+  let payloadDecoder = json: payload => {
+    tracks: json |> field("tracks", array(track)),
+    percent: json |> field("percent", int),
+    total: json |> field("total", int),
+  };
 
-module Api = {
   let getTracks = offset =>
-    Api.get("/tracks?" ++ "limit=" ++ limit ++ "&" ++ "offset=" ++ offset)
-    |> RePromise.andThen(result => Result.map(result, Track.payloadDecoder));
+    Api.get(
+      "/tracks?"
+      ++ "limit="
+      ++ Js.Int.toString(limit)
+      ++ "&"
+      ++ "offset="
+      ++ Js.Int.toString(offset),
+    )
+    |> RePromise.andThen(result => Result.map(result, payloadDecoder));
+
+  let fetchTracks = offset => getTracks(offset);
+  /* |> RePromise.andThen(Result.map(_, decoder)); */
+  /* let initialFetchTracks = (offset) => fetchTracks(startOffset); */
 };
-
-let fetchTracks = offset => Api.getTracks(offset);
-/* |> RePromise.andThen(Result.map(_, decoder)); */
-
-let initialFetchTracks = () => fetchTracks(startOffset);
 
 let renderPercent = p => ReasonReact.string(Js.Int.toString(p) ++ "%");
 
+type state = {
+  percent: int,
+  total: int,
+  offset: int,
+  tracks: array(track),
+};
 let component = ReasonReact.reducerComponent("FetchingScreen");
+
+let initialState = () => {
+  percent: 0,
+  total: 0,
+  tracks: [||],
+  offset: startOffset,
+};
+
+let reducer = (action, state) =>
+  switch (action) {
+  | SetPercent(percent) => ReasonReact.Update({...state, percent})
+  | SetTracks(tracks) => ReasonReact.Update({...state, tracks})
+  | SetTotal(total) => ReasonReact.Update({...state, total})
+  | SetOffset(offset) => ReasonReact.Update({...state, offset})
+  | Noop => ReasonReact.NoUpdate
+  };
 
 let make = _children => {
   ...component,
@@ -74,12 +89,20 @@ let make = _children => {
   initialState,
   didMount: self => {
     saveAccessData();
-    initialFetchTracks()
+    Api.fetchTracks(self.state.offset)
     |> RePromise.andThen(
          fun
-         | Result.Ok(payload) => {
+         | Result.Ok((payload: Api.payload)) => {
+             let newOffset = self.state.offset + limit;
              self.send(SetTracks(payload.tracks));
              self.send(SetPercent(payload.percent));
+             self.send(SetTotal(payload.total));
+             self.send(SetOffset(newOffset));
+             Js.log2(payload.total > self.state.offset, self.state.offset);
+             if (payload.total > self.state.offset) {
+               Api.fetchTracks(newOffset);
+               ();
+             };
            }
          | Result.Error(_) => (),
        )
