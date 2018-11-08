@@ -12,6 +12,37 @@ type action =
 let startOffset = 1;
 let limit = 50;
 
+/* let mockData =
+
+   {
+      "album": {
+        "id": "5jzohQ50TA36qTumAG1rEA",
+        "name": "Elements (Deluxe)"
+      },
+      "artist": {
+        "id": "2uFUBdaVGtyMqckSeCl0Qj",
+        "image": {
+          "height": 160,
+          "url": "https://i.scdn.co/image/f0242adeb3c7400d88a5ff4bb1119eb4b5d586d2",
+          "width": 160
+        },
+        "name": "Ludovico Einaudi"
+      },
+      "duration_ms": 198829,
+      "genres": [
+        "bow pop",
+        "compositional ambient"
+      ],
+      "id": "0ZJYxs4ukXlrFymGFpEUL3",
+      "image": {
+        "height": 640,
+        "url": "https://i.scdn.co/image/7ed9c4863f2aaaaf390650c3aec5acf445f10a34",
+        "width": 640
+      },
+      "name": "Song For Gavin",
+      "url": "https://api.spotify.com/v1/tracks/0ZJYxs4ukXlrFymGFpEUL3"
+    } */
+
 let saveAccessData = () => {
   let params = Api.getUrlParams();
   Js.log(params);
@@ -69,6 +100,24 @@ let initialState = () => {
   offset: startOffset,
 };
 
+let fetchTracksUntilAllGetLoaded = (send, state, offset) =>
+  Api.fetchTracks(offset)
+  |> RePromise.andThen(
+       fun
+       | Result.Ok((payload: Api.payload)) => {
+           let newOffset = state.offset + limit;
+           send(
+             UpdateData(
+               payload.tracks,
+               payload.percent,
+               payload.total,
+               newOffset,
+             ),
+           );
+         }
+       | Result.Error(_) => (),
+     );
+
 let reducer = (action, state) =>
   switch (action) {
   | UpdateData(tracks, percent, total, offset) =>
@@ -82,31 +131,25 @@ let reducer = (action, state) =>
       (self => self.send(SetOffset(offset))),
     )
 
-  | SetOffset(offset) => ReasonReact.Update({...state, offset})
+  | SetOffset(offset) =>
+    ReasonReact.UpdateWithSideEffects(
+      {...state, offset},
+      (
+        self =>
+          if (self.state.total > self.state.offset) {
+            fetchTracksUntilAllGetLoaded(
+              self.send,
+              self.state,
+              self.state.offset,
+            )
+            |> ignore;
+          }
+      ),
+    )
   };
 
 let component = ReasonReact.reducerComponent("FetchingScreen");
 
-let rec fetchTracksUntilAllGetLoaded = (send, state, offset) =>
-  Api.fetchTracks(offset)
-  |> RePromise.andThen(
-       fun
-       | Result.Ok((payload: Api.payload)) => {
-           let newOffset = offset + limit;
-           send(
-             UpdateData(
-               payload.tracks,
-               payload.percent,
-               payload.total,
-               newOffset,
-             ),
-           );
-           if (payload.total > newOffset) {
-             fetchTracksUntilAllGetLoaded(send, state, newOffset) |> ignore;
-           };
-         }
-       | Result.Error(_) => (),
-     );
 let make = _children => {
   ...component,
   reducer,
