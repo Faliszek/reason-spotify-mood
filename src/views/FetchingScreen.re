@@ -1,8 +1,28 @@
 open Belt;
 
+type image = {
+  width: int,
+  url: string,
+  height: int,
+};
+type album = {
+  id: string,
+  name: string,
+};
+type artist = {
+  id: string,
+  name: string,
+  image,
+};
 type track = {
   id: string,
   name: string,
+  url: string,
+  duration_ms: int,
+  genres: array(string),
+  image,
+  album,
+  artist,
 };
 
 type action =
@@ -12,37 +32,6 @@ type action =
 let startOffset = 1;
 let limit = 50;
 
-/* let mockData =
-
-   {
-      "album": {
-        "id": "5jzohQ50TA36qTumAG1rEA",
-        "name": "Elements (Deluxe)"
-      },
-      "artist": {
-        "id": "2uFUBdaVGtyMqckSeCl0Qj",
-        "image": {
-          "height": 160,
-          "url": "https://i.scdn.co/image/f0242adeb3c7400d88a5ff4bb1119eb4b5d586d2",
-          "width": 160
-        },
-        "name": "Ludovico Einaudi"
-      },
-      "duration_ms": 198829,
-      "genres": [
-        "bow pop",
-        "compositional ambient"
-      ],
-      "id": "0ZJYxs4ukXlrFymGFpEUL3",
-      "image": {
-        "height": 640,
-        "url": "https://i.scdn.co/image/7ed9c4863f2aaaaf390650c3aec5acf445f10a34",
-        "width": 640
-      },
-      "name": "Song For Gavin",
-      "url": "https://api.spotify.com/v1/tracks/0ZJYxs4ukXlrFymGFpEUL3"
-    } */
-
 let saveAccessData = () => {
   let params = Api.getUrlParams();
   Js.log(params);
@@ -51,10 +40,32 @@ let saveAccessData = () => {
 
 module Api = {
   open Json.Decode;
+  let image = json => {
+    width: json |> field("width", int),
+    url: json |> field("url", string),
+    height: json |> field("width", int),
+  };
+
+  let artist = json => {
+    id: json |> field("id", string),
+
+    name: json |> field("name", string),
+    image: json |> field("image", image),
+  };
+  let album = json => {
+    id: json |> field("id", string),
+    name: json |> field("name", string),
+  };
 
   let track = json => {
     id: json |> field("id", string),
     name: json |> field("name", string),
+    url: json |> field("url", string),
+    duration_ms: json |> field("duration_ms", int),
+    genres: json |> field("genres", array(string)),
+    artist: json |> field("artist", artist),
+    image: json |> field("image", image),
+    album: json |> field("album", album),
   };
 
   type payload = {
