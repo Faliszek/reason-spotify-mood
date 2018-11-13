@@ -161,6 +161,13 @@ let reducer = (action, state) =>
 
 let component = ReasonReact.reducerComponent("FetchingScreen");
 
+module Styles = {
+  /*Open the Css module, so we can access the style properties below without prefixing them with Css.*/
+  open Css;
+
+  let wrap = style([maxWidth(px(200))]);
+};
+
 let make = _children => {
   ...component,
   reducer,
@@ -172,5 +179,21 @@ let make = _children => {
   },
 
   render: self =>
-    <div> <Title> {renderPercent(self.state.percent)} </Title> </div>,
+    <div>
+      <div className=Styles.wrap>
+        <CircularProgress
+          percentage={self.state.percent}
+          text={renderPercent(self.state.percent)}
+          strokeWidth=4
+          backgroundPadding=10
+          styles={
+            "background": ReactDOMRe.Style.make(~fill="#444444", ()),
+            "stroke": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
+            "text": ReactDOMRe.Style.make(~fill="#fff", ()),
+            "path": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
+            "trail": ReactDOMRe.Style.make(~stroke="#444444", ()),
+          }
+        />
+      </div>
+    </div>,
 };
