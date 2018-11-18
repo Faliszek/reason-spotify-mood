@@ -11,11 +11,17 @@ external assign: string => unit = "assign";
 let redirect = (path: string) => assign(path);
 
 type result = Result.t(Js.Json.t, (int, string));
+
+let getToken = () => {
+  open LocalStorage;
+  let auth = get(storeAuth, "auth");
+  Js.Dict.unsafeGet(auth, "access_token");
+};
 let getHeaders = () =>
   Fetch.HeadersInit.make({
     "Content-Type": "application/json",
     "Accept": "application/json",
-    "Authorization": "Bearer " ++ LocalStorage.get("access_token"),
+    "Authorization": "Bearer " ++ getToken(),
   });
 
 let parseUrlParams = urlString => {

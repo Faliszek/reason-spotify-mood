@@ -1,6 +1,7 @@
 type route =
   | Welcome
-  | FetchScreen;
+  | FetchScreen
+  | PlaylistCreator;
 
 type state = {route};
 
@@ -15,6 +16,7 @@ let reducer = (action, _state) =>
 let mapUrlToRoute = (url: ReasonReact.Router.url) =>
   switch (url.path) {
   | ["fetching"] => FetchScreen
+  | ["create-playlists"] => PlaylistCreator
   | _ => Welcome
   };
 
@@ -41,6 +43,7 @@ let make = _children => {
     switch (self.state.route) {
     | Welcome => <Welcome />
     | FetchScreen => <FetchScreen />
+    | PlaylistCreator => <PlaylistCreator />
     },
 };
 

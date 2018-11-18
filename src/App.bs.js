@@ -6,6 +6,7 @@ var Curry = require("bs-platform/lib/js/curry.js");
 var Welcome = require("./views/Welcome.bs.js");
 var FetchScreen = require("./views/FetchScreen.bs.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
+var PlaylistCreator = require("./views/PlaylistCreator.bs.js");
 
 function reducer(action, _) {
   return /* Update */Block.__(0, [/* record */[/* route */action[0]]]);
@@ -13,8 +14,23 @@ function reducer(action, _) {
 
 function mapUrlToRoute(url) {
   var match = url[/* path */0];
-  if (match && match[0] === "fetching" && !match[1]) {
-    return /* FetchScreen */1;
+  if (match) {
+    switch (match[0]) {
+      case "create-playlists" : 
+          if (match[1]) {
+            return /* Welcome */0;
+          } else {
+            return /* PlaylistCreator */2;
+          }
+      case "fetching" : 
+          if (match[1]) {
+            return /* Welcome */0;
+          } else {
+            return /* FetchScreen */1;
+          }
+      default:
+        return /* Welcome */0;
+    }
   } else {
     return /* Welcome */0;
   }
@@ -43,10 +59,14 @@ function make() {
           /* shouldUpdate */component[/* shouldUpdate */8],
           /* render */(function (self) {
               var match = self[/* state */1][/* route */0];
-              if (match) {
-                return ReasonReact.element(undefined, undefined, FetchScreen.make(/* array */[]));
-              } else {
-                return ReasonReact.element(undefined, undefined, Welcome.make(/* array */[]));
+              switch (match) {
+                case 0 : 
+                    return ReasonReact.element(undefined, undefined, Welcome.make(/* array */[]));
+                case 1 : 
+                    return ReasonReact.element(undefined, undefined, FetchScreen.make(/* array */[]));
+                case 2 : 
+                    return ReasonReact.element(undefined, undefined, PlaylistCreator.make(/* array */[]));
+                
               }
             }),
           /* initialState */(function () {

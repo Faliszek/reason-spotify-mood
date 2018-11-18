@@ -7,19 +7,45 @@ module Styles = {
 };
 
 type iconType =
-  | Spotify;
+  | Spotify
+  | Circle
+  | Check
+  | Plus
+  | Minus
+  | Trash
+  | Save
+  | Update
+  | CloudUpload
+  | Add
+  | ArrowUp
+  | ArrowDown;
 
 let typeOfIcon = (t: iconType) =>
   switch (t) {
   | Spotify => "fab fa-spotify"
+  | Circle => "zmdi zmdi-circle"
+  | Check => "zmdi zmdi-check"
+  | Plus => "zmdi zmdi-plus"
+  | Minus => "zmdi zmdi-minus"
+  | Trash => "zmdi zmdi-delete"
+  | Save => "zmdi zmdi-check"
+  | Update => "zmdi zmdi-refresh"
+  | CloudUpload => "zmdi zmdi-upload"
+  | Add => "zmdi zmdi-file-plus"
+  | ArrowUp => "zmdi zmdi-chevron-up"
+  | ArrowDown => "zmdi zmdi-chevron-down"
   };
 
-let make = (~iconType, ~color, ~size, ~className, _children) => {
+let make = (~iconType, ~color=Theme.white, ~size=1.0, ~className=?, _children) => {
   ...component,
   render: _self =>
     <i
       className={
-        Cn.make([typeOfIcon(iconType), Styles.icon(color, size), className])
+        Cn.make([
+          typeOfIcon(iconType),
+          Styles.icon(color, size),
+          Cn.unpack(className),
+        ])
       }
     />,
 };

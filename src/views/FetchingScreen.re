@@ -1,83 +1,78 @@
 open Belt;
+open Domain;
 
-type image = {
-  width: int,
-  url: string,
-  height: int,
-};
-type album = {
-  id: string,
-  name: string,
-};
-type artist = {
-  id: string,
-  name: string,
-  image,
-};
-type track = {
-  id: string,
-  name: string,
-  url: string,
-  duration_ms: int,
-  genres: array(string),
-  image,
-  album,
-  artist,
-};
+type status =
+  | Waiting
+  | Done;
 
 type action =
   | UpdateData(array(track), int, int, int)
-  | SetOffset(int);
+  | SetOffset(int)
+  | UpdateInfo(status);
 
 let startOffset = 1;
 let limit = 50;
 
 let saveAccessData = () => {
+  open LocalStorage;
   let params = Api.getUrlParams();
-  Js.log(params);
-  LocalStorage.save(params);
+  save(storeAuth, {"auth": params});
 };
 
 module Api = {
   open Json.Decode;
-  let image = json => {
+
+  let imageDecoder = json => {
     width: json |> field("width", int),
     url: json |> field("url", string),
     height: json |> field("width", int),
   };
 
-  let artist = json => {
+  let artistDecoder = json => {
     id: json |> field("id", string),
 
     name: json |> field("name", string),
-    image: json |> field("image", image),
+    image: json |> field("image", imageDecoder),
   };
-  let album = json => {
+  let albumDecoder = json => {
     id: json |> field("id", string),
     name: json |> field("name", string),
   };
 
-  let track = json => {
+  let trackDecoder = json => {
     id: json |> field("id", string),
     name: json |> field("name", string),
     url: json |> field("url", string),
+    uri: json |> field("uri", string),
     duration_ms: json |> field("duration_ms", int),
     genres: json |> field("genres", array(string)),
-    artist: json |> field("artist", artist),
-    image: json |> field("image", image),
-    album: json |> field("album", album),
+    artist: json |> field("artist", artistDecoder),
+    image: json |> field("image", imageDecoder),
+    album: json |> field("album", albumDecoder),
   };
 
-  type payload = {
+  type tracksPayload = {
     total: int,
     percent: int,
     tracks: array(track),
   };
 
-  let payloadDecoder = json: payload => {
-    tracks: json |> field("tracks", array(track)),
+  type moodPayload = {
+    moodProposition: string,
+    city: string,
+    code: int,
+  };
+
+  let payloadDecoder = json: tracksPayload => {
+    tracks: json |> field("tracks", array(trackDecoder)),
     percent: json |> field("percent", int),
     total: json |> field("total", int),
+  };
+
+  let moodDecoder = json: moodPayload => {
+    moodProposition: json |> field("moodProposition", string),
+    city: json |> field("city", string),
+    code: json |> field("code", int),
   };
 
   let getTracks = offset =>
@@ -102,6 +97,7 @@ type state = {
   total: int,
   offset: int,
   tracks: array(track),
+  status,
 };
 
 let initialState = () => {
@@ -109,13 +105,14 @@ let initialState = () => {
   total: 0,
   tracks: [||],
   offset: startOffset,
+  status: Waiting,
 };
 
 let fetchTracksUntilAllGetLoaded = (send, state, offset) =>
   Api.fetchTracks(offset)
   |> RePromise.andThen(
        fun
-       | Result.Ok((payload: Api.payload)) => {
+       | Result.Ok((payload: Api.tracksPayload)) => {
            let newOffset = state.offset + limit;
            send(
              UpdateData(
@@ -139,14 +136,19 @@ let reducer = (action, state) =>
         percent,
         total,
       },
-      (self => self.send(SetOffset(offset))),
+      (
+        self => {
+          self.send(SetOffset(offset));
+          LocalStorage.save(LocalStorage.storeTracks, self.state.tracks);
+        }
+      ),
     )
 
   | SetOffset(offset) =>
     ReasonReact.UpdateWithSideEffects(
       {...state, offset},
       (
-        self =>
+        self => {
           if (self.state.total > self.state.offset) {
             fetchTracksUntilAllGetLoaded(
               self.send,
@@ -154,9 +156,26 @@ let reducer = (action, state) =>
               self.state.offset,
             )
             |> ignore;
-          }
+          };
+          if (self.state.percent >= 100) {
+            self.send(UpdateInfo(Done));
+          };
+        }
       ),
     )
+  | UpdateInfo(status) => ReasonReact.Update({...state, status})
+  };
+
+let typeOfIcon = t: Icon.iconType =>
+  switch (t) {
+  | Done => Check
+  | Waiting => Circle
+  };
+
+let typeOfText = s =>
+  switch (s) {
+  | Done => {j|Pomyślnie pobrano wszystkie twoje utwory|j}
+  | Waiting => {j|Trwa pobieranie ...|j}
   };
 
 let component = ReasonReact.reducerComponent("FetchingScreen");
@@ -165,7 +184,36 @@ module Styles = {
   /*Open the Css module, so we can access the style properties below without prefixing them with Css.*/
   open Css;
 
-  let wrap = style([maxWidth(px(200))]);
+  let wrap = style([maxWidth(px(200)), margin2(px(0), `auto)]);
+
+  let progress = {
+    "background": ReactDOMRe.Style.make(~fill="#444444", ()),
+    "stroke": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
+    "text": ReactDOMRe.Style.make(~fill="#fff", ()),
+    "path": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
+    "trail": ReactDOMRe.Style.make(~stroke="#444444", ()),
+  };
+
+  let subtitle =
+    style([
+      display(`flex),
+      alignItems(`center),
+      margin2(rem(2.0), `auto),
+      width(px(240)),
+      selector(
+        "> i",
+        [
+          width(rem(2.0)),
+          fontSize(rem(2.0)),
+          marginRight(rem(1.0)),
+          color(Theme.success),
+        ],
+      ),
+      selector(
+        "> p",
+        [width(pct(70.0)), textAlign(`center), margin2(px(0), `auto)],
+      ),
+    ]);
 };
 
 let make = _children => {
@@ -186,14 +234,38 @@ let make = _children => {
           text={renderPercent(self.state.percent)}
           strokeWidth=4
           backgroundPadding=10
-          styles={
-            "background": ReactDOMRe.Style.make(~fill="#444444", ()),
-            "stroke": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
-            "text": ReactDOMRe.Style.make(~fill="#fff", ()),
-            "path": ReactDOMRe.Style.make(~stroke="#7500a8", ()),
-            "trail": ReactDOMRe.Style.make(~stroke="#444444", ()),
-          }
+          styles=Styles.progress
         />
+      </div>
+      <div>
+        <div className=Styles.subtitle>
+          {
+            switch (self.state.status) {
+            | Done =>
+              <Icon
+                iconType={typeOfIcon(self.state.status)}
+                color=Theme.white
+                size=1.0
+              />
+
+            | _ => ReasonReact.null
+            }
+          }
+          <Text marginT=0.0 marginB=0.0>
+            {ReasonReact.string(typeOfText(self.state.status))}
+          </Text>
+        </div>
+        {
+          switch (self.state.status) {
+          | Done =>
+            <Button
+              text={j|Przejdź do kreatora|j}
+              onClick=(_e => ReasonReact.Router.push("/create-playlists"))
+              buttonType=Primary
+            />
+          | _ => ReasonReact.null
+          }
+        }
       </div>
     </div>,
 };

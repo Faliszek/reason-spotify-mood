@@ -1,25 +1,24 @@
 [@bs.val] external unsafeJsonParse: string => 'a = "JSON.parse";
 
-let localStorageNamespace = "reason-spotify-mood";
+let storeAuth = "reason-spotify-mood-auth";
+let storeTracks = "reason-spotify-mood-tracks";
 
-let save = accessData =>
-  switch (Js.Json.stringifyAny(accessData)) {
+let save = (keyStore: string, data) =>
+  switch (Js.Json.stringifyAny(data)) {
   | None => ()
   | Some(stringifiedAccessData) =>
-    Dom.Storage.(
-      localStorage |> setItem(localStorageNamespace, stringifiedAccessData)
-    )
+    Dom.Storage.(localStorage |> setItem(keyStore, stringifiedAccessData))
   };
 
-let get = key => {
+let get = (keyStore, key) => {
   let localDataString =
-    switch (Dom.Storage.(localStorage |> getItem(localStorageNamespace))) {
+    switch (Dom.Storage.(localStorage |> getItem(keyStore))) {
     | None => Js.Dict.empty()
     | Some(accessData) => unsafeJsonParse(accessData)
     };
 
   switch (Js.Dict.get(localDataString, key)) {
-  | None => ""
+  | None => Js.Dict.empty()
   | Some(data) => data
   };
 };

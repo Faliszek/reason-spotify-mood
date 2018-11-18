@@ -19,6 +19,8 @@ S src
 B lib/bs/src
 S src/react
 B lib/bs/src/react
+S src/domain
+B lib/bs/src/domain
 S src/views
 B lib/bs/src/views
 S src/components

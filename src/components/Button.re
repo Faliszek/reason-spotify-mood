@@ -1,6 +1,7 @@
 let component = ReasonReact.statelessComponent("Button");
 type buttonType =
-  | Primary;
+  | Primary
+  | Round;
 
 module Styles = {
   open Css;
@@ -26,14 +27,23 @@ module Styles = {
         borderRadius(px(32)),
         fontSize(rem(1.00)),
       ])
+
+    | Round =>
+      style([
+        height(px(36)),
+        width(px(36)),
+        borderRadius(pct(50.0)),
+        fontSize(rem(2.00)),
+      ])
     };
   let buttonColors = buttonType =>
     switch (buttonType) {
     | Primary => style([background(Theme.violet), color(Theme.white)])
+    | Round => style([background(Theme.violet), color(Theme.white)])
     };
 };
 
-let make = (~text, ~buttonType, ~onClick, _children) => {
+let make = (~text=?, ~buttonType, ~onClick, ~icon=?, ~className=?, _children) => {
   ...component,
   render: _self =>
     <button
@@ -43,9 +53,21 @@ let make = (~text, ~buttonType, ~onClick, _children) => {
           Styles.buttonColors(buttonType),
           Styles.buttonSize(buttonType),
           Styles.button,
+          Cn.unpack(className),
         ])
       }>
-      {ReasonReact.string(text)}
+      {
+        switch (icon) {
+        | Some(icon) => <Icon iconType=icon />
+        | _ => ReasonReact.null
+        }
+      }
+      {
+        switch (text) {
+        | Some(text) => ReasonReact.string(text)
+        | _ => ReasonReact.null
+        }
+      }
     </button>,
 };
 

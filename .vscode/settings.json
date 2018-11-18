@@ -1,6 +1,6 @@
 {
   "git.ignoreLimitWarning": true,
   "files.exclude": {
-    // "**/*.bs.js": true
+    "**/*.bs.js": true
   }
 }
