@@ -1,6 +1,6 @@
-let component = ReasonReact.statelessComponent("ArtistList");
+open Belt;
 
-open Domain;
+let component = ReasonReact.statelessComponent("ArtistList");
 
 module Styles = {
   open Css;
@@ -12,9 +12,9 @@ module Styles = {
       transitionDuration(300),
       bottom(
         if (showed) {
-          rem(5.0);
-        } else {
           rem(0.0);
+        } else {
+          vh(-30.0);
         },
       ),
     ]);
@@ -25,26 +25,45 @@ module Styles = {
       width(pct(90.0)),
       padding2(px(0), vw(5.0)),
       display(`flex),
-      minHeight(rem(2.5)),
+      height(rem(2.5)),
       justifyContent(`spaceBetween),
       alignItems(`center),
       cursor(`pointer),
       borderRadius(rem(0.5)),
     ]);
 
-  let scroll = style([]);
-  let listWrap = style([]);
+  let scroll = style([overflowY(`scroll), height(vh(30.0))]);
+  let listWrap =
+    style([
+      padding2(rem(0.0), rem(1.0)),
+      backgroundColor(Theme.lightBlack),
+    ]);
 };
 
 let iconType = showed => if (showed) {Icon.ArrowDown} else {Icon.ArrowUp};
-let make = (~artists: list(Domain.artist), ~showed, ~onToggle, _children) => {
+let make =
+    (
+      ~artists: array(Domain.artist),
+      ~showed,
+      ~onToggle,
+      ~onArtistClick,
+      ~selectedArtists,
+      _children,
+    ) => {
   ...component,
 
   render: _self => {
     let arrow = showed => if (showed) {Icon.ArrowDown} else {Icon.ArrowUp};
-    /* let artistList: list(Domain.artist) =
-        Belt.List.map(artists, a => <Artist name={a.name} />)
-       */
+    let artistList =
+      Array.map(artists, a =>
+        <Artist
+          id={a.id}
+          name={a.name}
+          imageSrc={a.image.url}
+          clicked={Array.some(selectedArtists, s => s == a.id)}
+          onArtistClick
+        />
+      );
     <div className={Styles.wrap(showed)}>
       <div className=Styles.header onClick=onToggle>
         <Text marginT=0.0 marginB=0.0>
@@ -52,7 +71,9 @@ let make = (~artists: list(Domain.artist), ~showed, ~onToggle, _children) => {
         </Text>
         <Icon iconType={arrow(showed)} />
       </div>
-      <div className=Styles.scroll> <div className=Styles.listWrap /> </div>
+      <div className=Styles.scroll>
+        <div className=Styles.listWrap> ...artistList </div>
+      </div>
     </div>;
   },
 };

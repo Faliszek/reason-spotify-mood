@@ -25,9 +25,9 @@ type track = {
   artist,
 };
 
-type artistWithTrackUri = {
-  id: string,
-  name: string,
-  image,
-  tracksUri: string,
-};
+/* type artistWithTrackUri = {
+     id: string,
+     name: string,
+     image,
+     tracksUri: string,
+   }; */

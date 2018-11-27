@@ -5,7 +5,6 @@ module Styles = {
 
   let wrap =
     style([
-      minWidth(px(300)),
       backgroundColor(`transparent),
       borderLeftStyle(`none),
       borderRightStyle(`none),

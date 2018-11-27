@@ -2,10 +2,12 @@ open Belt;
 open Domain;
 
 type action =
-  | UpdateTracks(list(track))
+  | UpdateTracks(array(track))
   | InitPlaylist
   | UpdatePlaylistName(string, int)
-  | ToggleArtistList;
+  | ToggleArtistList
+  | OnArtistClick(string, bool)
+  | AddArtistToPlaylist(int);
 
 type playlist = {
   uid: int,
@@ -14,6 +16,7 @@ type playlist = {
   public: bool,
   sended: bool,
   loading: bool,
+  tracks: array(track),
 };
 
 let initialedPlaylist = uid => {
@@ -23,20 +26,51 @@ let initialedPlaylist = uid => {
   public: false,
   sended: false,
   loading: false,
+  tracks: [||],
 };
 
 type state = {
   countList: int,
-  tracks: list(track),
+  tracks: array(track),
   playlists: list(playlist),
   showList: bool,
+  selectedArtists: array(string),
 };
 
 let initialState = () => {
   countList: 0,
-  tracks: [],
+  tracks: [||],
   playlists: [],
   showList: false,
+  selectedArtists: [||],
+};
+
+let setSelectedArtists = (artists: array(string), id, clicked) =>
+  if (clicked) {
+    Array.concat(artists, [|id|]);
+  } else {
+    Array.keep(artists, aId => aId != id);
+  };
+
+let addTracksToPlaylistByArtist = (playlistId, playlists, artistIds, tracks) => {
+  Js.log3(playlistId, List.toArray(playlists), artistIds);
+  let pickedTracks =
+    Array.keep(tracks, t => Array.some(artistIds, a => a == t.artist.id));
+  let arrayPlaylists = List.toArray(playlists);
+
+  let newPlaylist =
+    Array.keep(arrayPlaylists, p => p.uid == playlistId)->Array.get(0);
+
+  let updatedArrayPlaylists =
+    switch (newPlaylist) {
+    | Some(playlist) =>
+      Array.map(arrayPlaylists, p =>
+        p.uid === playlistId ? {...playlist, tracks: pickedTracks} : p
+      )
+    | None => arrayPlaylists
+    };
+
+  List.fromArray(updatedArrayPlaylists);
 };
 
 let reducer = (action, state) =>
@@ -66,6 +100,23 @@ let reducer = (action, state) =>
     });
   | ToggleArtistList =>
     ReasonReact.Update({...state, showList: !state.showList})
+  | OnArtistClick(id, clicked) =>
+    ReasonReact.Update({
+      ...state,
+      selectedArtists: setSelectedArtists(state.selectedArtists, id, clicked),
+    })
+  | AddArtistToPlaylist(playlistId) =>
+    ReasonReact.Update({
+      ...state,
+      selectedArtists: [||],
+      playlists:
+        addTracksToPlaylistByArtist(
+          playlistId,
+          state.playlists,
+          state.selectedArtists,
+          state.tracks,
+        ),
+    })
   | _ => ReasonReact.NoUpdate
   };
 
@@ -94,7 +145,7 @@ let make = _children => {
 
     let tracks =
       switch (Dom.Storage.(localStorage |> getItem(storeTracks))) {
-      | None => []
+      | None => [||]
       | Some(tracks) => unsafeJsonParse(tracks)
       };
     self.send(UpdateTracks(tracks));
@@ -102,11 +153,14 @@ let make = _children => {
 
   render: self => {
     let {tracks, playlists} = self.state;
+
     let playlistsItems =
       Belt.List.map(playlists, p =>
         <Playlist
           name={p.name}
           sended={p.sended}
+          onPlaceholderClick={_e => self.send(AddArtistToPlaylist(p.uid))}
+          tracks={p.tracks}
           onPlayListNameChange={
             e =>
               self.send(
@@ -118,18 +172,16 @@ let make = _children => {
       ->List.toArray
       ->Array.reverse
       ->ReasonReact.array;
-
-    Js.log(tracks);
-    let artists =
-      Belt.List.map(
-        tracks,
-        t => {
-          Js.log(t);
-          t.artist;
+    let artists = Array.map(tracks, t => t.artist);
+    let artistsFiltered: array(artist) =
+      Array.reduce(
+        artists,
+        [||],
+        (acc: array(artist), a) => {
+          let findId = Array.some(acc, f => f.id == a.id);
+          !findId ? Array.concat(acc, [|a|]) : acc;
         },
       );
-    Js.log(artists);
-
     <div>
       <div className=Styles.wrap>
         <div className=Styles.titleWrap>
@@ -145,9 +197,13 @@ let make = _children => {
         playlistsItems
       </div>
       <ArtistList
-        artists
+        artists=artistsFiltered
+        selectedArtists={self.state.selectedArtists}
         showed={self.state.showList}
         onToggle={_e => self.send(ToggleArtistList)}
+        onArtistClick={
+          (id, clicked) => self.send(OnArtistClick(id, clicked))
+        }
       />
     </div>;
   },

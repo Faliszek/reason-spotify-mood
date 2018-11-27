@@ -1,4 +1,5 @@
 let component = ReasonReact.statelessComponent("Playlist");
+open Belt;
 
 module Styles = {
   open Css;
@@ -14,7 +15,15 @@ module Styles = {
   let btn = style([marginLeft(rem(1.0))]);
   let btnRow = style([flex(1), display(`flex), justifyContent(`center)]);
   let artistWrap =
-    style([width(pct(100.0)), border(px(1), `dashed, Theme.lightGray)]);
+    style([
+      width(pct(100.0)),
+      border(px(1), `dashed, Theme.lightGray),
+      overflowY(`scroll),
+      height(rem(12.5)),
+      display(`flex),
+      alignItems(`center),
+      selector("> div", [maxHeight(pct(100.0))]),
+    ]);
   let input = style([flex(4)]);
 };
 
@@ -55,9 +64,19 @@ let renderBtn = (sended, order) =>
   | _ => ReasonReact.null
   };
 
-let make = (~onPlayListNameChange, ~name, ~sended, _children) => {
+let make =
+    (
+      ~onPlayListNameChange,
+      ~name,
+      ~sended,
+      ~onPlaceholderClick,
+      ~tracks: array(Domain.track),
+      _children,
+    ) => {
   ...component,
-  render: _self =>
+  render: _self => {
+    let tracksList = Array.map(tracks, t => <Track name={t.name} />);
+
     <div>
       <div className=Styles.wrap>
         <Input
@@ -70,10 +89,19 @@ let make = (~onPlayListNameChange, ~name, ~sended, _children) => {
           {renderBtn(sended, 2)}
         </div>
       </div>
-      <div className=Styles.artistWrap>
-        <BigText>
-          {ReasonReact.string({j|Przęciągnij wybranego artystę tutaj|j})}
-        </BigText>
+      <div className=Styles.artistWrap onClick={_e => onPlaceholderClick()}>
+        {
+          Array.length(tracks) == 0 ?
+            <BigText>
+              {
+                ReasonReact.string(
+                  {j|Kliknij wybranego artyste, a następnie w tą listę|j},
+                )
+              }
+            </BigText> :
+            <div> ...tracksList </div>
+        }
       </div>
-    </div>,
+    </div>;
+  },
 };
