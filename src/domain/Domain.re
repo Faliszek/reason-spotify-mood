@@ -25,6 +25,18 @@ type track = {
   artist,
 };
 
+type playlist = {
+  uid: int,
+  name: string,
+  description: string,
+  collaborative: bool,
+  public: bool,
+  sended: bool,
+  loading: bool,
+  tracks: array(track),
+  id: string,
+};
+
 /* type artistWithTrackUri = {
      id: string,
      name: string,

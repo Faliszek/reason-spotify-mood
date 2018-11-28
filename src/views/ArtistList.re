@@ -5,19 +5,7 @@ let component = ReasonReact.statelessComponent("ArtistList");
 module Styles = {
   open Css;
   let wrap = showed =>
-    style([
-      width(vw(100.0)),
-      position(`absolute),
-      transitionProperty("bottom"),
-      transitionDuration(300),
-      bottom(
-        if (showed) {
-          rem(0.0);
-        } else {
-          vh(-30.0);
-        },
-      ),
-    ]);
+    style([width(vw(100.0)), position(`absolute), bottom(rem(0.0))]);
 
   let header =
     style([
@@ -32,7 +20,19 @@ module Styles = {
       borderRadius(rem(0.5)),
     ]);
 
-  let scroll = style([overflowY(`scroll), height(vh(30.0))]);
+  let scroll = showed =>
+    style([
+      overflowY(`scroll),
+      transitionProperty("height"),
+      transitionDuration(300),
+      height(
+        if (showed) {
+          vh(30.0);
+        } else {
+          rem(0.0);
+        },
+      ),
+    ]);
   let listWrap =
     style([
       padding2(rem(0.0), rem(1.0)),
@@ -71,7 +71,7 @@ let make =
         </Text>
         <Icon iconType={arrow(showed)} />
       </div>
-      <div className=Styles.scroll>
+      <div className={Styles.scroll(showed)}>
         <div className=Styles.listWrap> ...artistList </div>
       </div>
     </div>;

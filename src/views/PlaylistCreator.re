@@ -7,26 +7,19 @@ type action =
   | UpdatePlaylistName(string, int)
   | ToggleArtistList
   | OnArtistClick(string, bool)
-  | AddArtistToPlaylist(int);
-
-type playlist = {
-  uid: int,
-  name: string,
-  description: string,
-  public: bool,
-  sended: bool,
-  loading: bool,
-  tracks: array(track),
-};
+  | AddArtistToPlaylist(int)
+  | RemoveTrackFromPlaylist(int, string);
 
 let initialedPlaylist = uid => {
   uid,
   name: "",
   description: "",
+  collaborative: false,
   public: false,
-  sended: false,
+  sended: true,
   loading: false,
   tracks: [||],
+  id: "",
 };
 
 type state = {
@@ -53,7 +46,6 @@ let setSelectedArtists = (artists: array(string), id, clicked) =>
   };
 
 let addTracksToPlaylistByArtist = (playlistId, playlists, artistIds, tracks) => {
-  Js.log3(playlistId, List.toArray(playlists), artistIds);
   let pickedTracks =
     Array.keep(tracks, t => Array.some(artistIds, a => a == t.artist.id));
   let arrayPlaylists = List.toArray(playlists);
@@ -66,6 +58,25 @@ let addTracksToPlaylistByArtist = (playlistId, playlists, artistIds, tracks) => 
     | Some(playlist) =>
       Array.map(arrayPlaylists, p =>
         p.uid === playlistId ? {...playlist, tracks: pickedTracks} : p
+      )
+    | None => arrayPlaylists
+    };
+
+  List.fromArray(updatedArrayPlaylists);
+};
+let removeTrackFromPlaylist = (playlistId, playlists, trackId) => {
+  let arrayPlaylists = List.toArray(playlists);
+
+  let pickedPlaylist =
+    Array.keep(arrayPlaylists, p => p.uid == playlistId)->Array.get(0);
+
+  let updatedArrayPlaylists =
+    switch (pickedPlaylist) {
+    | Some(playlist) =>
+      Array.map(arrayPlaylists, p =>
+        p.uid === playlistId ?
+          {...playlist, tracks: Array.keep(p.tracks, t => t.id != trackId)} :
+          p
       )
     | None => arrayPlaylists
     };
@@ -117,6 +128,12 @@ let reducer = (action, state) =>
           state.tracks,
         ),
     })
+  | RemoveTrackFromPlaylist(playlistId, trackId) =>
+    ReasonReact.Update({
+      ...state,
+      playlists:
+        removeTrackFromPlaylist(playlistId, state.playlists, trackId),
+    })
   | _ => ReasonReact.NoUpdate
   };
 
@@ -125,6 +142,8 @@ let component = ReasonReact.reducerComponent("PlaylistCreator");
 module Styles = {
   /*Open the Css module, so we can access the style properties below without prefixing them with Css.*/
   open Css;
+
+  let scroll = style([overflowY(`hidden), height(vh(100.0))]);
   let wrap = style([padding2(vh(2.0), vw(5.0)), width(vw(90.0))]);
   let titleWrap =
     style([
@@ -157,10 +176,15 @@ let make = _children => {
     let playlistsItems =
       Belt.List.map(playlists, p =>
         <Playlist
+          key={Js.Int.toString(p.uid)}
           name={p.name}
+          playlist=p
           sended={p.sended}
           onPlaceholderClick={_e => self.send(AddArtistToPlaylist(p.uid))}
           tracks={p.tracks}
+          onTrackRemove={
+            trackId => self.send(RemoveTrackFromPlaylist(p.uid, trackId))
+          }
           onPlayListNameChange={
             e =>
               self.send(
@@ -182,7 +206,7 @@ let make = _children => {
           !findId ? Array.concat(acc, [|a|]) : acc;
         },
       );
-    <div>
+    <div className=Styles.scroll>
       <div className=Styles.wrap>
         <div className=Styles.titleWrap>
           <Text marginB=0.0 marginT=0.0 fontS=1.5>

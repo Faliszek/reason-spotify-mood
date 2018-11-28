@@ -22,35 +22,37 @@ module Styles = {
       height(rem(12.5)),
       display(`flex),
       alignItems(`center),
-      selector("> div", [maxHeight(pct(100.0))]),
+      selector(
+        "> div",
+        [
+          maxHeight(pct(100.0)),
+          margin2(px(0), `auto),
+          width(pct(95.0)),
+        ],
+      ),
     ]);
   let input = style([flex(4)]);
 };
 
-let renderBtn = (sended, order) =>
+module Api = Playlist_Api;
+
+let renderBtn = (sended, order, playlist) =>
   switch (sended, order) {
-  | (true, 1) =>
-    <Button
-      className=Styles.btn
-      buttonType=Round
-      icon=CloudUpload
-      onClick=(_e => ())
-    />
-
-  | (true, 2) =>
-    <Button
-      className=Styles.btn
-      buttonType=Round
-      icon=Trash
-      onClick=(_e => ())
-    />
-
   | (false, 1) =>
     <Button
       className=Styles.btn
       buttonType=Round
       icon=Add
-      onClick=(_e => ())
+      onClick=(
+        _e =>
+          Api.createPlaylist("/playlist", playlist)
+          |> RePromise.andThen(
+               fun
+               | Result.Ok(_) => Js.log("work")
+               | Result.Error(_) => (),
+             )
+          |> ignore
+      )
     />
 
   | (false, 2) =>
@@ -61,6 +63,31 @@ let renderBtn = (sended, order) =>
       onClick=(_e => ())
     />
 
+  | (true, 1) =>
+    <Button
+      className=Styles.btn
+      buttonType=Round
+      icon=CloudUpload
+      onClick=(
+        _e =>
+          Api.updatePlaylist("/playlist", playlist.id, playlist)
+          |> RePromise.andThen(
+               fun
+               | Result.Ok(_) => Js.log("work")
+               | Result.Error(_) => (),
+             )
+          |> ignore
+      )
+    />
+
+  | (true, 2) =>
+    <Button
+      className=Styles.btn
+      buttonType=Round
+      icon=Trash
+      onClick=(_e => ())
+    />
+
   | _ => ReasonReact.null
   };
 
@@ -68,14 +95,28 @@ let make =
     (
       ~onPlayListNameChange,
       ~name,
+      ~playlist,
       ~sended,
       ~onPlaceholderClick,
+      ~onTrackRemove,
       ~tracks: array(Domain.track),
       _children,
     ) => {
   ...component,
   render: _self => {
-    let tracksList = Array.map(tracks, t => <Track name={t.name} />);
+    let tracksList =
+      Array.mapWithIndex(tracks, (index, t) =>
+        <Track
+          key={t.id}
+          id={t.id}
+          number={index + 1}
+          name={t.name}
+          artistName={t.artist.name}
+          onRemove={() => onTrackRemove(t.id)}
+        />
+      );
+
+    let emptyArray = Array.length(tracks) == 0;
 
     <div>
       <div className=Styles.wrap>
@@ -85,23 +126,29 @@ let make =
           className=Styles.input
         />
         <div className=Styles.btnRow>
-          {renderBtn(sended, 1)}
-          {renderBtn(sended, 2)}
+          {renderBtn(sended, 1, playlist)}
+          {renderBtn(sended, 2, playlist)}
         </div>
       </div>
-      <div className=Styles.artistWrap onClick={_e => onPlaceholderClick()}>
-        {
-          Array.length(tracks) == 0 ?
-            <BigText>
-              {
-                ReasonReact.string(
-                  {j|Kliknij wybranego artyste, a następnie w tą listę|j},
-                )
-              }
-            </BigText> :
-            <div> ...tracksList </div>
-        }
-      </div>
+      {
+        sended ?
+          <div
+            className=Styles.artistWrap
+            onClick={_e => emptyArray ? onPlaceholderClick() : ()}>
+            {
+              emptyArray ?
+                <BigText>
+                  {
+                    ReasonReact.string(
+                      {j|Kliknij wybranego artyste, a następnie w tą listę|j},
+                    )
+                  }
+                </BigText> :
+                <div> ...tracksList </div>
+            }
+          </div> :
+          ReasonReact.null
+      }
     </div>;
   },
 };

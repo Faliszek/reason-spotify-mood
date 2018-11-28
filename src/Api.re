@@ -65,10 +65,32 @@ let fetch = (path: string, params): RePromise.t(result) =>
        };
      });
 
-let createBody = body => body |> Js.Json.stringify |> Fetch.BodyInit.make;
+let createBody = body => body |> Json.stringify |> Fetch.BodyInit.make;
 
 let get = path =>
   fetch(
     path,
     Fetch.RequestInit.make(~method_=Get, ~headers=getHeaders(), ()),
+  );
+
+let put = (path, body) => {
+  let params = Fetch.RequestInit.make(~method_=Put, ~headers=getHeaders());
+  fetch(
+    path,
+    switch (body) {
+    | Some(body) => params(~body=createBody(body), ())
+    | None => params()
+    },
+  );
+};
+
+let post = (path, body) =>
+  fetch(
+    path,
+    Fetch.RequestInit.make(
+      ~body=createBody(body),
+      ~method_=Post,
+      ~headers=getHeaders(),
+      (),
+    ),
   );
