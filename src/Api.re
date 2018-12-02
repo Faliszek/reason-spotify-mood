@@ -52,7 +52,7 @@ let parseUrlParams = urlString => {
 let getUrlParams = () => parseUrlParams(hash);
 
 let fetch = (path: string, params): RePromise.t(result) =>
-  Fetch.fetchWithInit(url ++ path, params)
+  Fetch.fetchWithInit(url ++ "/api" ++ path, params)
   |> RePromise.then_(res => {
        open Result;
        let status = Fetch.Response.status(res);

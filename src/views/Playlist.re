@@ -36,7 +36,7 @@ module Styles = {
 
 module Api = Playlist_Api;
 
-let renderBtn = (sended, order, playlist) =>
+let renderBtn = (sended, order, playlist, onCreate, onRemove) =>
   switch (sended, order) {
   | (false, 1) =>
     <Button
@@ -48,7 +48,7 @@ let renderBtn = (sended, order, playlist) =>
           Api.createPlaylist("/playlist", playlist)
           |> RePromise.andThen(
                fun
-               | Result.Ok(_) => Js.log("work")
+               | Result.Ok(playlistId) => onCreate(playlist.uid, playlistId)
                | Result.Error(_) => (),
              )
           |> ignore
@@ -60,7 +60,7 @@ let renderBtn = (sended, order, playlist) =>
       className=Styles.btn
       buttonType=Round
       icon=Minus
-      onClick=(_e => ())
+      onClick=(_e => onRemove(playlist.uid))
     />
 
   | (true, 1) =>
@@ -80,14 +80,6 @@ let renderBtn = (sended, order, playlist) =>
       )
     />
 
-  | (true, 2) =>
-    <Button
-      className=Styles.btn
-      buttonType=Round
-      icon=Trash
-      onClick=(_e => ())
-    />
-
   | _ => ReasonReact.null
   };
 
@@ -99,6 +91,8 @@ let make =
       ~sended,
       ~onPlaceholderClick,
       ~onTrackRemove,
+      ~onCreate,
+      ~onRemove,
       ~tracks: array(Domain.track),
       _children,
     ) => {
@@ -126,8 +120,8 @@ let make =
           className=Styles.input
         />
         <div className=Styles.btnRow>
-          {renderBtn(sended, 1, playlist)}
-          {renderBtn(sended, 2, playlist)}
+          {renderBtn(sended, 1, playlist, onCreate, onRemove)}
+          {renderBtn(sended, 2, playlist, onCreate, onRemove)}
         </div>
       </div>
       {

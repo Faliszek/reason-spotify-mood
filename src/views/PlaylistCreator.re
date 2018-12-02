@@ -8,7 +8,9 @@ type action =
   | ToggleArtistList
   | OnArtistClick(string, bool)
   | AddArtistToPlaylist(int)
-  | RemoveTrackFromPlaylist(int, string);
+  | RemoveTrackFromPlaylist(int, string)
+  | CreatePlaylist(int, string)
+  | RemovePlaylist(int);
 
 let initialedPlaylist = uid => {
   uid,
@@ -16,7 +18,7 @@ let initialedPlaylist = uid => {
   description: "",
   collaborative: false,
   public: false,
-  sended: true,
+  sended: false,
   loading: false,
   tracks: [||],
   id: "",
@@ -84,6 +86,40 @@ let removeTrackFromPlaylist = (playlistId, playlists, trackId) => {
   List.fromArray(updatedArrayPlaylists);
 };
 
+let removePlaylist = (uid, playlists) => {
+  let arrayPlaylists = List.toArray(playlists);
+
+  let pickedPlaylist =
+    Array.keep(arrayPlaylists, p => p.uid == uid)->Array.get(0);
+
+  let updatedArrayPlaylists =
+    switch (pickedPlaylist) {
+    | Some(_playlist) => Array.keep(arrayPlaylists, p => p.uid !== uid)
+    | None => arrayPlaylists
+    };
+
+  List.fromArray(updatedArrayPlaylists);
+};
+
+let createPlaylist = (playlistUid, playlistId, playlists) => {
+  let arrayPlaylists = List.toArray(playlists);
+
+  let pickedPlaylist =
+    Array.keep(arrayPlaylists, p => p.uid == playlistUid)->Array.get(0);
+
+  let updatedArrayPlaylists =
+    switch (pickedPlaylist) {
+    | Some(playlist) =>
+      Array.map(arrayPlaylists, p =>
+        p.uid === playlistUid ?
+          {...playlist, id: playlistId, sended: true} : p
+      )
+    | None => arrayPlaylists
+    };
+
+  List.fromArray(updatedArrayPlaylists);
+};
+
 let reducer = (action, state) =>
   switch (action) {
   | UpdateTracks(tracks) => ReasonReact.Update({...state, tracks})
@@ -128,12 +164,25 @@ let reducer = (action, state) =>
           state.tracks,
         ),
     })
+
+  | CreatePlaylist(playlistUid, playlistId) =>
+    ReasonReact.Update({
+      ...state,
+      playlists: createPlaylist(playlistUid, playlistId, state.playlists),
+    })
   | RemoveTrackFromPlaylist(playlistId, trackId) =>
     ReasonReact.Update({
       ...state,
       playlists:
         removeTrackFromPlaylist(playlistId, state.playlists, trackId),
     })
+
+  | RemovePlaylist(playlistUid) =>
+    ReasonReact.Update({
+      ...state,
+      playlists: removePlaylist(playlistUid, state.playlists),
+    })
+
   | _ => ReasonReact.NoUpdate
   };
 
@@ -185,6 +234,10 @@ let make = _children => {
           onTrackRemove={
             trackId => self.send(RemoveTrackFromPlaylist(p.uid, trackId))
           }
+          onCreate={
+            (uid, playlistId) => self.send(CreatePlaylist(uid, playlistId))
+          }
+          onRemove={uid => self.send(RemovePlaylist(uid))}
           onPlayListNameChange={
             e =>
               self.send(
